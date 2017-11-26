@@ -6,6 +6,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 public class SampleKafkaProducerAsync {
 
@@ -25,21 +26,19 @@ public class SampleKafkaProducerAsync {
         // acks='all' => The producer retrieves the successful response when the leader and all replicas have retrieved
         //             the message. This is the safest mode. The latency is high in this mode.
         props.put(ProducerConfig.ACKS_CONFIG, "1"); // wait leader broker to get response
-        Producer<String, String> producer = new KafkaProducer<String, String>(props);
+        Producer<String, String> producer = new KafkaProducer<>(props);
 
         try {
             // async fashion
             System.out.println("sending message...");
-            Future<RecordMetadata> record = producer.send(new ProducerRecord<String, String>("topic1", "key1", "hello world! from Kafka"));
+            Future<RecordMetadata> record = producer.send(new ProducerRecord<>("topic1", "key1", "hello world! from Kafka"));
             System.out.println("message sent!");
             System.out.println("waiting response from kafka broker...");
             record.get();
             System.out.println("message has been retrieved successfully");
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }finally {
+        } finally {
             producer.close();
         }
     }
