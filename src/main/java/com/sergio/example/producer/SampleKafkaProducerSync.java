@@ -1,16 +1,22 @@
-package com.sergio.example;
+package com.sergio.example.producer;
 
-import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.function.Supplier;
 
-public class SampleKafkaProducerAsync {
+/**
+ * IMPORTANT: {@link KafkaProducer} is thread-safe. Can be shared between threads.
+ */
+public class SampleKafkaProducerSync {
 
-    public static void main(String[] args) {
+    public static void produce(String topic, String message) {
 
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
@@ -27,15 +33,10 @@ public class SampleKafkaProducerAsync {
         //             the message. This is the safest mode. The latency is high in this mode.
         props.put(ProducerConfig.ACKS_CONFIG, "1"); // wait leader broker to get response
         Producer<String, String> producer = new KafkaProducer<>(props);
-
         try {
-            // async fashion
-            System.out.println("sending message...");
-            Future<RecordMetadata> record = producer.send(new ProducerRecord<>("topic1", "key1", "hello world! from Kafka"));
-            System.out.println("message sent!");
-            System.out.println("waiting response from kafka broker...");
+            // sync fashion
+            Future<RecordMetadata> record = producer.send(new ProducerRecord<String, String>(topic, message));
             record.get();
-            System.out.println("message has been retrieved successfully");
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         } finally {
